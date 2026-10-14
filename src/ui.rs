@@ -505,7 +505,8 @@ impl Recorder {
             .build();
         let saved = settings::load_format();
         format_row.set_selected(Format::ALL.iter().position(|f| *f == saved).unwrap_or(0) as u32);
-        let language_labels: Vec<&str> = LANGUAGES.iter().map(|(_, label)| *label).collect();
+        let language_labels: Vec<&str> =
+            LANGUAGES.iter().map(|(_, label)| label.as_str()).collect();
         let language_row = adw::ComboRow::builder()
             .title("Language")
             .subtitle("Used for the transcript after the call")
@@ -2068,7 +2069,8 @@ impl Recorder {
             .unwrap_or_default();
         let dialog = adw::AlertDialog::new(Some("Import audio"), Some(&name));
         let group = adw::PreferencesGroup::new();
-        let language_labels: Vec<&str> = LANGUAGES.iter().map(|(_, label)| *label).collect();
+        let language_labels: Vec<&str> =
+            LANGUAGES.iter().map(|(_, label)| label.as_str()).collect();
         let language = adw::ComboRow::builder()
             .title("Language")
             .model(&gtk::StringList::new(&language_labels))
