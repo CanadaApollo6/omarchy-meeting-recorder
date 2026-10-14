@@ -36,7 +36,7 @@ Prefer to build it yourself? See [Build from source](#build-from-source), or gra
 
 ### Checks the sound before you start
 
-The app opens ready, not recording. The two meters are live from the start, a still line that thickens as sound comes in, so you can see that both your microphone and the computer audio arrive before the meeting begins. Type a name if you like (otherwise it becomes "Meeting 14:30"), pick the audio format and the transcript language, and press **Start recording**.
+The app opens ready, not recording. The two meters are live from the start, the same moving waves as while recording, so you can see that both your microphone and the computer audio arrive before the meeting begins. Type a name if you like (otherwise it becomes "Meeting 14:30"), pick the audio format and the transcript language, and press **Start recording**.
 
 <p align="center"><img src="screenshots/ready.webp" alt="The ready page: meeting name, audio file, language, two meters that say Not recording, the Start recording button and Import an audio file, or drop one here" width="440"></p>
 
@@ -47,6 +47,16 @@ Your microphone and whatever your computer plays are recorded as two separate tr
 <p align="center"><img src="screenshots/recording.webp" alt="Recording: both meters moving, the clock, Pause and Stop recording" width="440">&nbsp;&nbsp;<img src="screenshots/paused.webp" alt="Paused: both waves frozen and dimmed with a PAUSED sign, Resume and Stop recording" width="440"></p>
 
 **Pause** freezes both waves under a "❚❚ PAUSED" sign and stops the clock; nothing is written to either track until you press **Resume**.
+
+### Records your webcam too, if you like
+
+Turn on **Webcam** and your camera is recorded next to the audio, as `webcam.mp4` (picture only) in the meeting folder, and a small live picture in its row shows what it sees. The video keeps time with the audio: with the camera on, a recording (or a resume) starts its audio once the first frame is in, pauses are left out as in the audio, and you can turn the camera on or off during the recording, black filling the time it was off. The toggle is remembered, and so is the camera, which is the first real one the system has. Open the meeting later and the video plays small in the corner of the transcript, in step with the audio.
+
+### Keeps your meeting notes next to the recording
+
+The **a** in the corner of the ready page opens meeting notes next to the recorder, empty in a new window: the script of a voice-over, or what you want to say in a meeting. The paragraph with the cursor is lit and kept in the middle; ↓ and ↑ (or Ctrl+↓ and Ctrl+↑ while you type) move to the next and the previous one, and every edit is saved right away. `omarchy-meeting-recorder --notes <file>` opens a file of your own there. A recording made with meeting notes open keeps a copy as `notes.md` in its meeting folder, and the done page shows it next to the transcript.
+
+![Recording Launch sync with the meeting notes beside it: the agenda for the call, with the paragraph about Northwind lit and the others dimmed](screenshots/notes.webp)
 
 ### Stays out of the way
 
@@ -140,6 +150,8 @@ Inside, the audio in the format you picked, the transcript, a `.meeting-recorder
   - **Stereo**: `audio.ogg`, mic on the left channel, computer audio on the right
   - **Separate files**: `mic.ogg` and `computer.ogg`
 - `.tracks/mic.ogg` and `.tracks/computer.ogg`, a hidden copy of both tracks in mono. This is what Transcribe again uses, so the speakers stay apart whatever audio format you chose. Delete the directory if you do not need that.
+- `notes.md`, the meeting notes that were open while you recorded, when there were any
+- `webcam.mp4`, the camera, picture only and as long as the audio, when the webcam was on
 - For an imported file: `audio.ogg`, the transcript and the `.meeting-recorder` file; the original file is left where it was.
 
 Both tracks are always recorded separately, and each is levelled to the same speech loudness when it is saved, so a quiet microphone and a loud call end up equally easy to hear. The format can be switched until the moment you press stop.
@@ -257,22 +269,24 @@ This also recovers a failed first-start “Add to Bar” attempt in version 1.0.
 
 | Command | What it does |
 |---|---|
-| `omarchy-meeting-recorder` | Open the recorder, ready to record |
+| `omarchy-meeting-recorder [--name <name>] [--notes <file>]` | Open the recorder, ready to record. `--name` names the meeting about to be recorded, whoever presses Start; `--notes` shows a file as meeting notes next to the recorder, to read from and edit while recording |
 | `omarchy-meeting-recorder <folder or .meeting-recorder file>` | Open a saved meeting on the done page |
-| `omarchy-meeting-recorder start [name]` | Start recording, for a keybinding; opens the recorder first when it is not running. With a name, the meeting gets that name (a script can pass a calendar event's title) |
+| `omarchy-meeting-recorder start [--name <name>] [--notes <file>]` | Start recording, for a keybinding; opens the recorder first when it is not running. With a name, the meeting gets that name (a script can pass a calendar event's title); the name without `--name` works too. With notes, they open next to the recorder |
 | `omarchy-meeting-recorder pause` | Pause or resume the running recording |
 | `omarchy-meeting-recorder stop` | Stop the running recording |
 | `omarchy-meeting-recorder compact` | Switch the recording window between full and compact |
 | `omarchy-meeting-recorder new-window` | Open another window, or the app when it is not running |
-| `omarchy-meeting-recorder watch` | Stream the recorder state as NDJSON, for the bar widget |
+| `omarchy-meeting-recorder watch` | Stream the recorder state as NDJSON, for the bar widget; a line carries the meeting's `folder` once it has one |
+| `omarchy-meeting-recorder wait [--audio]` | Wait until the meeting being recorded is done and print its folder, for a script or an agent; with `--audio` as soon as the audio is saved, before the transcript |
 | `omarchy-meeting-recorder transcribe <mic> <computer> [--language xx] [--model name]` | Transcribe two tracks and print the transcript as Markdown |
 | `omarchy-meeting-recorder transcribe-file <audio> [--speakers N] [--language xx] [--model name]` | Transcribe one file, telling the voices apart, and print the transcript as Markdown |
 | `omarchy-meeting-recorder ask "<prompt>" < text` | Run a prompt over stdin through the default agent, without tools (`ask --agent` shows which agent that is) |
 | `omarchy-meeting-recorder action "<name>" <meeting folder>` | Run one of your [actions](docs/actions.md) on a meeting, as the done page does; without arguments it lists them |
 
-For example:
+Every flag takes its value after a space or an equals sign: `--name "Weekly sync"` and `--name="Weekly sync"` are the same. For example:
 
 ```bash
+omarchy-meeting-recorder --notes script.md --name "Voice-over"
 omarchy-meeting-recorder transcribe mic.ogg computer.ogg --language en > transcript.md
 omarchy-meeting-recorder transcribe-file interview.mp3 --speakers 2 > transcript.md
 ```
